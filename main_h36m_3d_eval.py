@@ -64,6 +64,7 @@ def main(opt):
         "walkingtogether",
     ]
     errs = np.zeros([len(acts) + 1, opt.output_n])
+    n_total = 0
     for i, act in enumerate(acts):
         test_dataset = datasets.Datasets(opt, split=2, actions=[act])
         print(">>> Testing dataset length: {:d}".format(test_dataset.__len__()))
@@ -75,7 +76,8 @@ def main(opt):
             pin_memory=True,
         )
 
-        ret_test = run_model(net_pred, is_train=3, data_loader=test_loader, opt=opt)
+        n, ret_test = run_model(net_pred, is_train=3, data_loader=test_loader, opt=opt)
+        n_total += n
         print("testing error: {:.3f}".format(ret_test["#1"]))
         ret_log = np.array([])
         for k in ret_test.keys():
@@ -84,6 +86,10 @@ def main(opt):
     errs[-1] = np.mean(errs[:-1], axis=0)
     acts = np.expand_dims(np.array(acts + ["average"]), axis=1)
     value = np.concatenate([acts, errs.astype(np.str)], axis=1)
+    print("")
+    print("Total samples:", n_total)
+    print(head)
+    print(value[-1])
     log.save_csv_log(opt, head, value, is_create=True, file_name="test_pre_action")
 
 
@@ -210,14 +216,19 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
         p3d_h36 = p3d_h36.reshape([-1, in_n + out_n, 32, 3])
 
         mpjpe_p3d_h36 = torch.sum(
-            torch.mean(torch.norm(p3d_h36[:, in_n:] - p3d_out, dim=3), dim=2), dim=0
+            torch.mean(
+                torch.sqrt(torch.sum((p3d_h36[:, in_n:] - p3d_out) ** 2, dim=-1)), dim=2
+            ),
+            dim=0,
         )
         m_p3d_h36 += mpjpe_p3d_h36.cpu().data.numpy()
     ret = {}
     m_p3d_h36 = m_p3d_h36 / n
     for j in range(out_n):
         ret["#{:d}".format(titles[j])] = m_p3d_h36[j]
-    return ret
+
+    print(n, ret)
+    return n, ret
 
 
 if __name__ == "__main__":

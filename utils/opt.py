@@ -85,6 +85,12 @@ class Options:
             action="store_true",
             help="whether to load existing model",
         )
+        self.parser.add_argument(
+            "--data_dir",
+            type=str,
+            default="../data_h36m/",
+            help="path to the unziped dataset directories(H36m/AMASS/3DPW)",
+        )
 
     def _print(self):
         print("\n==================Options=================")

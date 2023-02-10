@@ -19,7 +19,7 @@ class Datasets(Dataset):
         :param split: 0 train, 1 testing, 2 validation
         :param sample_rate:
         """
-        self.path_to_data = "./datasets/h3.6m/"
+        self.path_to_data = opt.data_dir
         self.split = split
         self.in_n = opt.input_n
         self.out_n = opt.output_n
