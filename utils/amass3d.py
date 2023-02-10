@@ -1,16 +1,16 @@
-from torch.utils.data import Dataset
-import numpy as np
-from h5py import File
-import scipy.io as sio
-from utils import data_utils
-from matplotlib import pyplot as plt
-import torch
 import os
-from utils import ang2joint
+
+import numpy as np
+import scipy.io as sio
+import torch
+from h5py import File
+from matplotlib import pyplot as plt
+from torch.utils.data import Dataset
+
+from utils import ang2joint, data_utils
 
 
 class Datasets(Dataset):
-
     def __init__(self, opt, actions=None, split=0):
         """
         :param path_to_data:
@@ -33,9 +33,18 @@ class Datasets(Dataset):
         seq_len = self.in_n + self.out_n
 
         amass_splits = [
-            ['CMU', 'MPI_Limits', 'TotalCapture', 'Eyes_Japan_Dataset', 'KIT', 'EKUT', 'TCD_handMocap', 'ACCAD'],
-            ['HumanEva', 'MPI_HDM05', 'SFU', 'MPI_mosh'],
-            ['BioMotionLab_NTroje'],
+            [
+                "CMU",
+                "MPI_Limits",
+                "TotalCapture",
+                "Eyes_Japan_Dataset",
+                "KIT",
+                "EKUT",
+                "TCD_handMocap",
+                "ACCAD",
+            ],
+            ["HumanEva", "MPI_HDM05", "SFU", "MPI_mosh"],
+            ["BioMotionLab_NTroje"],
         ]
         # amass_splits = [['BioMotionLab_NTroje'], ['HumanEva'], ['SSM_synced']]
         # amass_splits = [['HumanEva'], ['HumanEva'], ['HumanEva']]
@@ -61,9 +70,9 @@ class Datasets(Dataset):
         # np.savez_compressed('smpl_skeleton.npz', p3d0=p3d0, parents=parents)
 
         # load mean skeleton
-        skel = np.load('./body_models/smpl_skeleton.npz')
-        p3d0 = torch.from_numpy(skel['p3d0']).float().cuda()
-        parents = skel['parents']
+        skel = np.load("./body_models/smpl_skeleton.npz")
+        p3d0 = torch.from_numpy(skel["p3d0"]).float().cuda()
+        parents = skel["parents"]
         parent = {}
         for i in range(len(parents)):
             parent[i] = parents[i]
@@ -72,22 +81,22 @@ class Datasets(Dataset):
             if not os.path.isdir(self.path_to_data + ds):
                 print(ds)
                 continue
-            print('>>> loading {}'.format(ds))
+            print(">>> loading {}".format(ds))
             for sub in os.listdir(self.path_to_data + ds):
-                if not os.path.isdir(self.path_to_data + ds + '/' + sub):
+                if not os.path.isdir(self.path_to_data + ds + "/" + sub):
                     continue
-                for act in os.listdir(self.path_to_data + ds + '/' + sub):
-                    if not act.endswith('.npz'):
+                for act in os.listdir(self.path_to_data + ds + "/" + sub):
+                    if not act.endswith(".npz"):
                         continue
                     # if not ('walk' in act or 'jog' in act or 'run' in act or 'treadmill' in act):
                     #     continue
-                    pose_all = np.load(self.path_to_data + ds + '/' + sub + '/' + act)
+                    pose_all = np.load(self.path_to_data + ds + "/" + sub + "/" + act)
                     try:
-                        poses = pose_all['poses']
+                        poses = pose_all["poses"]
                     except:
-                        print('no poses at {}_{}_{}'.format(ds, sub, act))
+                        print("no poses at {}_{}_{}".format(ds, sub, act))
                         continue
-                    frame_rate = pose_all['mocap_framerate']
+                    frame_rate = pose_all["mocap_framerate"]
                     # gender = pose_all['gender']
                     # dmpls = pose_all['dmpls']
                     # betas = pose_all['betas']

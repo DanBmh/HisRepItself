@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
-import torch.nn as nn
-import torch
-from torch.nn.parameter import Parameter
 import math
+
+import torch
+import torch.nn as nn
+from torch.nn.parameter import Parameter
 
 
 class GraphConvolution(nn.Module):
@@ -23,11 +23,11 @@ class GraphConvolution(nn.Module):
         if bias:
             self.bias = Parameter(torch.FloatTensor(out_features))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
         self.reset_parameters()
 
     def reset_parameters(self):
-        stdv = 1. / math.sqrt(self.weight.size(1))
+        stdv = 1.0 / math.sqrt(self.weight.size(1))
         self.weight.data.uniform_(-stdv, stdv)
         self.att.data.uniform_(-stdv, stdv)
         if self.bias is not None:
@@ -42,9 +42,14 @@ class GraphConvolution(nn.Module):
             return output
 
     def __repr__(self):
-        return self.__class__.__name__ + ' (' \
-               + str(self.in_features) + ' -> ' \
-               + str(self.out_features) + ')'
+        return (
+            self.__class__.__name__
+            + " ("
+            + str(self.in_features)
+            + " -> "
+            + str(self.out_features)
+            + ")"
+        )
 
 
 class GC_Block(nn.Module):
@@ -81,13 +86,20 @@ class GC_Block(nn.Module):
         return y + x
 
     def __repr__(self):
-        return self.__class__.__name__ + ' (' \
-               + str(self.in_features) + ' -> ' \
-               + str(self.out_features) + ')'
+        return (
+            self.__class__.__name__
+            + " ("
+            + str(self.in_features)
+            + " -> "
+            + str(self.out_features)
+            + ")"
+        )
 
 
 class GCN(nn.Module):
-    def __init__(self, input_feature, hidden_feature, p_dropout, num_stage=1, node_n=48):
+    def __init__(
+        self, input_feature, hidden_feature, p_dropout, num_stage=1, node_n=48
+    ):
         """
         :param input_feature: num of input feature
         :param hidden_feature: num of hidden feature
@@ -103,7 +115,9 @@ class GCN(nn.Module):
 
         self.gcbs = []
         for i in range(num_stage):
-            self.gcbs.append(GC_Block(hidden_feature, p_dropout=p_dropout, node_n=node_n))
+            self.gcbs.append(
+                GC_Block(hidden_feature, p_dropout=p_dropout, node_n=node_n)
+            )
 
         self.gcbs = nn.ModuleList(self.gcbs)
 

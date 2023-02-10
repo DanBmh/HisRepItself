@@ -1,18 +1,18 @@
-from torch.utils.data import Dataset
-import numpy as np
-from h5py import File
-import scipy.io as sio
-from utils import data_utils
-from matplotlib import pyplot as plt
-import torch
 import os
-from utils import ang2joint
 import pickle as pkl
 from os import walk
 
+import numpy as np
+import scipy.io as sio
+import torch
+from h5py import File
+from matplotlib import pyplot as plt
+from torch.utils.data import Dataset
+
+from utils import ang2joint, data_utils
+
 
 class Datasets(Dataset):
-
     def __init__(self, opt, split=0):
         """
         :param path_to_data:
@@ -27,7 +27,7 @@ class Datasets(Dataset):
         self.split = split
         self.in_n = opt.input_n
         self.out_n = opt.output_n
-        #self.sample_rate = opt.sample_rate
+        # self.sample_rate = opt.sample_rate
         self.p3d = []
         self.keys = []
         self.data_idx = []
@@ -35,11 +35,11 @@ class Datasets(Dataset):
         seq_len = self.in_n + self.out_n
 
         if split == 0:
-            data_path = self.path_to_data + '/train/'
+            data_path = self.path_to_data + "/train/"
         elif split == 2:
-            data_path = self.path_to_data + '/test/'
+            data_path = self.path_to_data + "/test/"
         elif split == 1:
-            data_path = self.path_to_data + '/validation/'
+            data_path = self.path_to_data + "/validation/"
         files = []
         for (dirpath, dirnames, filenames) in walk(data_path):
             files.extend(filenames)
@@ -60,9 +60,9 @@ class Datasets(Dataset):
         # p3d0 = lbs.vertices2joints(bm.J_regressor, v_shaped)  # [1,52,3]
         # p3d0 = (p3d0 - p3d0[:, 0:1, :]).float().cuda()[:, :22]
         # parents = bm.kintree_table.data.numpy()[0, :]
-        skel = np.load('./body_models/smpl_skeleton.npz')
-        p3d0 = torch.from_numpy(skel['p3d0']).float().cuda()[:, :22]
-        parents = skel['parents']
+        skel = np.load("./body_models/smpl_skeleton.npz")
+        p3d0 = torch.from_numpy(skel["p3d0"]).float().cuda()[:, :22]
+        parents = skel["parents"]
         parent = {}
         for i in range(len(parents)):
             if i > 21:
@@ -73,10 +73,10 @@ class Datasets(Dataset):
         sample_rate = int(60 // 25)
 
         for f in files:
-            with open(data_path + f, 'rb') as f:
-                print('>>> loading {}'.format(f))
-                data = pkl.load(f, encoding='latin1')
-                joint_pos = data['poses_60Hz']
+            with open(data_path + f, "rb") as f:
+                print(">>> loading {}".format(f))
+                data = pkl.load(f, encoding="latin1")
+                joint_pos = data["poses_60Hz"]
                 for i in range(len(joint_pos)):
                     poses = joint_pos[i]
                     fn = poses.shape[0]
@@ -120,7 +120,7 @@ class Datasets(Dataset):
         return self.p3d[key][fs]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from utils.opt import Options
 
     opt = Options().parse()
