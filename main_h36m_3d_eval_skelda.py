@@ -104,64 +104,57 @@ def run_test(model, opt):
     seq_in = opt.kernel_size
 
     # Load preprocessed datasets
-    dataset_test, _ = utils_pipeline.load_dataset(datapath_save_out, "test", config)
+    dataset_test, dlen = utils_pipeline.load_dataset(datapath_save_out, "test", config)
     label_gen_test = utils_pipeline.create_labels_generator(dataset_test, config)
-    dataset_test = utils_pipeline.seperate_scenes(label_gen_test)
 
     stime = time.time()
+    frame_losses = np.zeros([out_n])
+    nitems = 0
+
     with torch.no_grad():
         nbatch = 1
+        batch_size = nbatch
 
-        for action in dataset_test:
+        for batch in tqdm.tqdm(label_gen_test, total=dlen):
 
-            if viz_action != "" and viz_action != action:
+            if nbatch == 1:
+                batch = [batch]
+
+            if viz_action != "" and viz_action != batch[0]["action"]:
                 continue
 
-            frame_losses = np.zeros([out_n])
-            nitems = 0
+            nitems += nbatch
+            sequences_train = prepare_sequences(batch, nbatch, "input", device)
+            sequences_gt = prepare_sequences(batch, nbatch, "target", device)
+            seq_all = torch.cat([sequences_train, sequences_gt], dim=1)
 
-            for batch in tqdm.tqdm(dataset_test[action]):
-                nitems += nbatch
-                batch_size = nbatch
+            p3d_out_all = model(seq_all, input_n=in_n, output_n=25, itera=itera)
 
-                if nbatch == 1:
-                    batch = [batch]
+            sequences_predict = (
+                p3d_out_all[:, seq_in:]
+                .transpose(1, 2)
+                .reshape([batch_size, 25 * itera, -1])[:, :out_n]
+            )
 
-                sequences_train = prepare_sequences(batch, nbatch, "input", device)
-                sequences_gt = prepare_sequences(batch, nbatch, "target", device)
-                seq_all = torch.cat([sequences_train, sequences_gt], dim=1)
+            if viz_action != "":
+                viz_joints_3d(sequences_predict, batch)
 
-                p3d_out_all = model(seq_all, input_n=in_n, output_n=25, itera=itera)
-
-                sequences_predict = (
-                    p3d_out_all[:, seq_in:]
-                    .transpose(1, 2)
-                    .reshape([batch_size, 25 * itera, -1])[:, :out_n]
-                )
-
-                if viz_action != "":
-                    viz_joints_3d(sequences_predict, batch)
-
-                pose_dim = sequences_predict.shape[-1]
-                loss = torch.sqrt(
-                    torch.sum(
-                        (
-                            sequences_predict.view(nbatch, -1, pose_dim // 3, 3)
-                            - sequences_gt.view(nbatch, -1, pose_dim // 3, 3)
-                        )
-                        ** 2,
-                        dim=-1,
+            pose_dim = sequences_predict.shape[-1]
+            loss = torch.sqrt(
+                torch.sum(
+                    (
+                        sequences_predict.view(nbatch, -1, pose_dim // 3, 3)
+                        - sequences_gt.view(nbatch, -1, pose_dim // 3, 3)
                     )
+                    ** 2,
+                    dim=-1,
                 )
-                loss = torch.sum(torch.mean(loss, dim=2), dim=0)
-                frame_losses += loss.cpu().data.numpy()
+            )
+            loss = torch.sum(torch.mean(loss, dim=2), dim=0)
+            frame_losses += loss.cpu().data.numpy()
 
-            frame_losses = frame_losses / nitems
-            action_losses.append(frame_losses)
-            print('Frame losses for action "{}" are:'.format(action), frame_losses)
-
-        avg_losses = np.mean(action_losses, axis=0)
-        print("Averaged frame losses in mm are:", avg_losses)
+    avg_losses = frame_losses / nitems
+    print("Averaged frame losses in mm are:", avg_losses)
 
     ftime = time.time()
     print("Testing took {} seconds".format(int(ftime - stime)))
