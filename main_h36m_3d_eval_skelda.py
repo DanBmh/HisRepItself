@@ -1,4 +1,5 @@
 import sys
+import time
 
 import numpy as np
 import torch
@@ -19,9 +20,37 @@ print("Using device: %s" % device)
 datapath_save_out = "/datasets/tmp/human36m/{}_forecast_samples.json"
 config = {
     "item_step": 2,
-    "window_step": 20,
+    "window_step": 2,
     "input_n": 50,
     "output_n": 25,
+    "select_joints": [
+        "hip_middle",
+        "hip_right",
+        "knee_right",
+        "ankle_right",
+        # "middlefoot_right",
+        # "forefoot_right",
+        "hip_left",
+        "knee_left",
+        "ankle_left",
+        # "middlefoot_left",
+        # "forefoot_left",
+        # "spine_upper",
+        # "neck",
+        "nose",
+        # "head",
+        "shoulder_left",
+        "elbow_left",
+        "wrist_left",
+        # "hand_left",
+        # "thumb_left",
+        "shoulder_right",
+        "elbow_right",
+        "wrist_right",
+        # "hand_right",
+        # "thumb_right",
+        "shoulder_middle",
+    ],
 }
 
 viz_action = ""
@@ -69,7 +98,7 @@ def run_test(model, opt):
 
     model.eval()
     action_losses = []
-    itera = 3
+    itera = 1
     in_n = opt.input_n
     out_n = opt.output_n
     seq_in = opt.kernel_size
@@ -79,6 +108,7 @@ def run_test(model, opt):
     label_gen_test = utils_pipeline.create_labels_generator(dataset_test, config)
     dataset_test = utils_pipeline.seperate_scenes(label_gen_test)
 
+    stime = time.time()
     with torch.no_grad():
         nbatch = 1
 
@@ -101,12 +131,12 @@ def run_test(model, opt):
                 sequences_gt = prepare_sequences(batch, nbatch, "target", device)
                 seq_all = torch.cat([sequences_train, sequences_gt], dim=1)
 
-                p3d_out_all = model(seq_all, input_n=in_n, output_n=10, itera=itera)
+                p3d_out_all = model(seq_all, input_n=in_n, output_n=25, itera=itera)
 
                 sequences_predict = (
                     p3d_out_all[:, seq_in:]
                     .transpose(1, 2)
-                    .reshape([batch_size, 10 * itera, -1])[:, :out_n]
+                    .reshape([batch_size, 25 * itera, -1])[:, :out_n]
                 )
 
                 if viz_action != "":
@@ -132,6 +162,9 @@ def run_test(model, opt):
 
         avg_losses = np.mean(action_losses, axis=0)
         print("Averaged frame losses in mm are:", avg_losses)
+
+    ftime = time.time()
+    print("Testing took {} seconds".format(int(ftime - stime)))
 
 
 # ==================================================================================================
