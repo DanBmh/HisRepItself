@@ -128,12 +128,12 @@ def run_test(model, opt):
             sequences_gt = prepare_sequences(batch, nbatch, "target", device)
             seq_all = torch.cat([sequences_train, sequences_gt], dim=1)
 
-            p3d_out_all = model(seq_all, input_n=in_n, output_n=25, itera=itera)
+            p3d_out_all = model(seq_all, input_n=in_n, output_n=out_n, itera=itera)
 
             sequences_predict = (
                 p3d_out_all[:, seq_in:]
                 .transpose(1, 2)
-                .reshape([batch_size, 25 * itera, -1])[:, :out_n]
+                .reshape([batch_size, out_n * itera, -1])[:, :out_n]
             )
 
             if viz_action != "":

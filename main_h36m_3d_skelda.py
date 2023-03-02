@@ -130,20 +130,6 @@ def main(opt):
         datapath_save_out, "test", config
     )
 
-    # evaluation
-    if opt.is_eval:
-        label_gen_test = utils_pipeline.create_labels_generator(dataset_test, config)
-        ret_test = run_model(
-            net_pred, is_train=3, data_loader=label_gen_test, opt=opt, dlen=dlen_test
-        )
-        ret_log = np.array([])
-        head = np.array([])
-        for k in ret_test.keys():
-            ret_log = np.append(ret_log, [ret_test[k]])
-            head = np.append(head, [k])
-        log.save_csv_log(opt, head, ret_log, is_create=True, file_name="test_walking")
-        # print('testing error: {:.3f}'.format(ret_test['m_p3d_h36']))
-
     # training
     if not opt.is_eval:
         err_best = 1000
@@ -158,9 +144,6 @@ def main(opt):
             )
             label_gen_eval = utils_pipeline.create_labels_generator(
                 dataset_eval, config
-            )
-            label_gen_test = utils_pipeline.create_labels_generator(
-                dataset_test, config
             )
 
             ret_train = run_model(
@@ -182,15 +165,6 @@ def main(opt):
                 dlen=dlen_eval,
             )
             print("validation error: {:.3f}".format(ret_valid["m_p3d_h36"]))
-            ret_test = run_model(
-                net_pred,
-                is_train=3,
-                data_loader=label_gen_test,
-                opt=opt,
-                epo=epo,
-                dlen=dlen_test,
-            )
-            print("testing error: {:.3f}".format(ret_test["#1"]))
 
             ret_log = np.array([epo, lr_now])
             head = np.array(["epoch", "lr"])
@@ -200,9 +174,6 @@ def main(opt):
             for k in ret_valid.keys():
                 ret_log = np.append(ret_log, [ret_valid[k]])
                 head = np.append(head, ["valid_" + k])
-            for k in ret_test.keys():
-                ret_log = np.append(ret_log, [ret_test[k]])
-                head = np.append(head, ["test_" + k])
             log.save_csv_log(opt, head, ret_log, is_create=(epo == 1))
             if ret_valid["m_p3d_h36"] < err_best:
                 err_best = ret_valid["m_p3d_h36"]
