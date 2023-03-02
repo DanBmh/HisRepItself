@@ -19,14 +19,51 @@ import utils_pipeline
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device: %s" % device)
 
-datapath_save_out = "/datasets/tmp/human36m/{}_forecast_samples.json"
+# datapath_save_out = "/datasets/tmp/human36m/{}_forecast_samples.json"
+# config = {
+#     "item_step": 2,
+#     "window_step": 2,
+#     "input_n": 50,
+#     "output_n": 25,
+#     "select_joints": [
+#         "hip_middle",
+#         "hip_right",
+#         "knee_right",
+#         "ankle_right",
+#         # "middlefoot_right",
+#         # "forefoot_right",
+#         "hip_left",
+#         "knee_left",
+#         "ankle_left",
+#         # "middlefoot_left",
+#         # "forefoot_left",
+#         # "spine_upper",
+#         # "neck",
+#         "nose",
+#         # "head",
+#         "shoulder_left",
+#         "elbow_left",
+#         "wrist_left",
+#         # "hand_left",
+#         # "thumb_left",
+#         "shoulder_right",
+#         "elbow_right",
+#         "wrist_right",
+#         # "hand_right",
+#         # "thumb_right",
+#         "shoulder_middle",
+#     ],
+# }
+
+datapath_save_out = "/datasets/tmp/mocap/{}_forecast_samples.json"
 config = {
     "item_step": 2,
     "window_step": 2,
-    "input_n": 50,
-    "output_n": 25,
+    "input_n": 30,
+    "output_n": 15,
     "select_joints": [
         "hip_middle",
+        # "spine_lower",
         "hip_right",
         "knee_right",
         "ankle_right",
@@ -37,20 +74,26 @@ config = {
         "ankle_left",
         # "middlefoot_left",
         # "forefoot_left",
+        # "spine2",
+        # "spine3",
         # "spine_upper",
         # "neck",
-        "nose",
-        # "head",
-        "shoulder_left",
-        "elbow_left",
-        "wrist_left",
-        # "hand_left",
-        # "thumb_left",
+        # "head_lower",
+        "head_upper",
         "shoulder_right",
         "elbow_right",
         "wrist_right",
-        # "hand_right",
-        # "thumb_right",
+        # "hand_right1",
+        # "hand_right2",
+        # "hand_right3",
+        # "hand_right4",
+        "shoulder_left",
+        "elbow_left",
+        "wrist_left",
+        # "hand_left1",
+        # "hand_left2",
+        # "hand_left3",
+        # "hand_left4"
         "shoulder_middle",
     ],
 }
@@ -123,11 +166,10 @@ def main(opt):
     dataset_train, dlen_train = utils_pipeline.load_dataset(
         datapath_save_out, "train", config
     )
+    esplit = "test" if "mocap" in datapath_save_out else "eval"
+
     dataset_eval, dlen_eval = utils_pipeline.load_dataset(
-        datapath_save_out, "eval", config
-    )
-    dataset_test, dlen_test = utils_pipeline.load_dataset(
-        datapath_save_out, "test", config
+        datapath_save_out, esplit, config
     )
 
     # training
