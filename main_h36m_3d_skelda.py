@@ -59,8 +59,10 @@ datapath_save_out = "/datasets/tmp/mocap/{}_forecast_samples.json"
 config = {
     "item_step": 2,
     "window_step": 2,
-    "input_n": 30,
-    "output_n": 15,
+    # "input_n": 30,
+    # "output_n": 15,
+    "input_n": 90,
+    "output_n": 45,
     "select_joints": [
         "hip_middle",
         # "spine_lower",
@@ -103,7 +105,7 @@ config = {
 
 
 def prepare_sequences(batch, batch_size: int, split: str, device):
-    sequences = utils_pipeline.make_input_sequence(batch, split)
+    sequences = utils_pipeline.make_input_sequence(batch, split, "gt-gt")
 
     # Merge joints and coordinates to a single dimension
     sequences = sequences.reshape([batch_size, sequences.shape[1], -1])
