@@ -128,10 +128,10 @@ def main(opt):
             print(">>> training epoch: {:d}".format(epo))
 
             label_gen_train = utils_pipeline.create_labels_generator(
-                dataset_train, config
+                dataset_train["sequences"], config
             )
             label_gen_eval = utils_pipeline.create_labels_generator(
-                dataset_eval, config
+                dataset_eval["sequences"], config
             )
 
             ret_train = run_model(
