@@ -11,7 +11,7 @@ from model import AttModel
 from utils import log, util
 from utils.opt import Options
 
-sys.path.append("/PoseForecaster/")
+sys.path.append("/PoseForecasters/")
 import utils_pipeline
 
 # ==================================================================================================

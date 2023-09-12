@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from model import AttModel
 from utils.opt import Options
 
-sys.path.append("/PoseForecaster/")
+sys.path.append("/PoseForecasters/")
 import utils_pipeline
 
 # ==================================================================================================
